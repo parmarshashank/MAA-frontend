@@ -31,24 +31,22 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#EAE0D2] to-[#A68763] animate-fadeIn">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold text-[#2D2D2D]">Doctor Login</h2>
-          <p className="text-[#A68763]">Welcome back! Please enter your details</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light to-primary animate-fadeIn">
+      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
+        <h2 className="text-3xl font-bold text-background-dark">Doctor Login</h2>
+        <p className="text-primary">Welcome back! Please enter your details</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <FaEnvelope className="h-5 w-5 text-[#A68763]" />
+                <FaEnvelope className="h-5 w-5 text-primary" />
               </div>
               <input
                 type="email"
                 name="email"
                 required
-                className="w-full pl-10 pr-4 py-3 border border-[#D7C9AE] rounded-lg focus:ring-2 focus:ring-[#A68763] focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Email address"
                 onChange={handleChange}
               />
@@ -56,13 +54,13 @@ const Login = ({ onLogin }) => {
 
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <FaLock className="h-5 w-5 text-[#A68763]" />
+                <FaLock className="h-5 w-5 text-primary" />
               </div>
               <input
                 type="password"
                 name="password"
                 required
-                className="w-full pl-10 pr-4 py-3 border border-[#D7C9AE] rounded-lg focus:ring-2 focus:ring-[#A68763] focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Password"
                 onChange={handleChange}
               />
@@ -71,17 +69,17 @@ const Login = ({ onLogin }) => {
 
           <div className="flex items-center justify-between">
             <label className="flex items-center">
-              <input type="checkbox" className="w-4 h-4 border-[#D7C9AE] rounded focus:ring-[#A68763]" />
-              <span className="ml-2 text-sm text-[#2D2D2D]">Remember me</span>
+              <input type="checkbox" className="w-4 h-4 border-secondary rounded focus:ring-primary" />
+              <span className="ml-2 text-sm text-background-dark">Remember me</span>
             </label>
-            <a href="#" className="text-sm text-[#A68763] hover:underline">
+            <a href="#" className="text-sm text-primary hover:underline">
               Forgot password?
             </a>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 px-4 bg-[#2D2D2D] text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-[#A68763] disabled:opacity-50"
+            className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             disabled={loading}
           >
             {loading ? (

@@ -6,6 +6,17 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: {
+          DEFAULT: '#A68763',
+          hover: '#8B7355',
+        },
+        secondary: '#D7C9AE',
+        background: {
+          light: '#EAE0D2',
+          dark: '#2D2D2D',
+        },
+      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },

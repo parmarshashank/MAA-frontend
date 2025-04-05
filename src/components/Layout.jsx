@@ -48,7 +48,7 @@ const Layout = ({ children, onLogout, isAuthenticated }) => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col min-h-screen bg-gradient-to-br from-[#EAE0D2] to-[#A68763]/10"
+      className="flex flex-col min-h-screen bg-gradient-to-br from-background-light to-primary/10"
     >
       <motion.header 
         initial={{ y: -100 }}
@@ -70,21 +70,21 @@ const Layout = ({ children, onLogout, isAuthenticated }) => {
             style={{ scale: logoScale }}
             whileHover={{ scale: 1.05 }}
           >
-            <Link to="/" className="text-2xl font-bold text-[#EAE0D2] tracking-wider">
+            <Link to="/" className="text-2xl font-bold text-background-light tracking-wider">
               MAA
             </Link>
           </motion.div>
 
           <div className="flex items-center space-x-8">
             <motion.nav className="hidden md:flex space-x-8">
-              <Link to="/" className="text-[#EAE0D2] hover:text-white transition-colors">
+              <Link to="/" className="text-background-light hover:text-white transition-colors">
                 Home
               </Link>
-              <Link to="/about" className="text-[#EAE0D2] hover:text-white transition-colors">
+              <Link to="/about" className="text-background-light hover:text-white transition-colors">
                 About
               </Link>
               {!isAuthenticated && (
-                <Link to="/login" className="text-[#EAE0D2] hover:text-white transition-colors">
+                <Link to="/login" className="text-background-light hover:text-white transition-colors">
                   Login
                 </Link>
               )}
@@ -95,7 +95,7 @@ const Layout = ({ children, onLogout, isAuthenticated }) => {
                 onClick={onLogout}
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center space-x-2 px-6 py-2.5 rounded-lg 
-                         bg-[#A68763] text-white font-semibold
+                         bg-primary text-white font-semibold
                          shadow-lg hover:shadow-xl
                          transition-all duration-300"
               >

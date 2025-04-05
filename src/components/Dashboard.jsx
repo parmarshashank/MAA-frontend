@@ -33,10 +33,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EAE0D2] flex">
+    <div className="min-h-screen bg-background-light flex">
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[#2D2D2D] text-white hover:bg-[#A68763] transition-colors"
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-background-dark text-white hover:bg-primary transition-colors"
       >
         {isSidebarOpen ? <FaTimes /> : <FaBars />}
       </button>
@@ -49,18 +49,18 @@ const Dashboard = () => {
             exit="closed"
             variants={sidebarVariants}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="bg-[#2D2D2D] text-white h-screen fixed top-0 left-0 flex flex-col z-40"
+            className="bg-background-dark text-white h-screen fixed top-0 left-0 flex flex-col z-40"
           >
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-[#D7C9AE] mt-12 mb-8"></h2>
+              <h2 className="text-2xl font-bold text-secondary mt-12 mb-8"></h2>
               
               <nav className="space-y-4">
                 <button
                   onClick={() => setActiveComponent('assign')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
                     ${activeComponent === 'assign' 
-                      ? 'bg-[#A68763] text-white' 
-                      : 'text-[#D7C9AE] hover:bg-[#A68763]/20'}`}
+                      ? 'bg-primary text-white' 
+                      : 'text-secondary hover:bg-primary/20'}`}
                 >
                   <FaPills />
                   <span>Assign Medicines</span>
@@ -70,8 +70,8 @@ const Dashboard = () => {
                   onClick={() => setActiveComponent('add')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
                     ${activeComponent === 'add' 
-                      ? 'bg-[#A68763] text-white' 
-                      : 'text-[#D7C9AE] hover:bg-[#A68763]/20'}`}
+                      ? 'bg-primary text-white' 
+                      : 'text-secondary hover:bg-primary/20'}`}
                 >
                   <FaPlus />
                   <span>Add New Medicine</span>
@@ -81,8 +81,8 @@ const Dashboard = () => {
                   onClick={() => setActiveComponent('ask-ai')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
                     ${activeComponent === 'ask-ai' 
-                      ? 'bg-[#A68763] text-white' 
-                      : 'text-[#D7C9AE] hover:bg-[#A68763]/20'}`}
+                      ? 'bg-primary text-white' 
+                      : 'text-secondary hover:bg-primary/20'}`}
                 >
                   <FaRobot />
                   <span>Ask AI Assistant</span>
@@ -92,8 +92,8 @@ const Dashboard = () => {
                   onClick={() => setActiveComponent('settings')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
                     ${activeComponent === 'settings' 
-                      ? 'bg-[#A68763] text-white' 
-                      : 'text-[#D7C9AE] hover:bg-[#A68763]/20'}`}
+                      ? 'bg-primary text-white' 
+                      : 'text-secondary hover:bg-primary/20'}`}
                 >
                   <FaCog />
                   <span>Settings</span>
@@ -104,12 +104,12 @@ const Dashboard = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-full flex items-center space-x-3 p-3 rounded-lg
-                           bg-[#A68763] text-white font-semibold
-                           hover:bg-[#D7C9AE] hover:text-[#2D2D2D]
+                           bg-primary text-white font-semibold
+                           hover:bg-secondary hover:text-background-dark
                            shadow-md hover:shadow-lg
                            transition-all duration-300
                            border-2 border-transparent
-                           hover:border-[#2D2D2D]"
+                           hover:border-background-dark"
                 >
                   <FaSignOutAlt className="text-xl" />
                   <span>Logout</span>
@@ -131,17 +131,17 @@ const Dashboard = () => {
         >
           <div className="flex flex-col items-start space-y-4">
             <div className="flex items-center space-x-4">
-              <FaUserMd className="text-5xl text-[#A68763]" />
+              <FaUserMd className="text-5xl text-primary" />
               <div>
-                <h1 className="text-5xl font-bold text-[#2D2D2D] leading-tight">
+                <h1 className="text-5xl font-bold text-background-dark leading-tight">
                   Welcome back,
                 </h1>
-                <h2 className="text-4xl font-bold text-[#A68763] leading-tight">
+                <h2 className="text-4xl font-bold text-primary leading-tight">
                   Dr. {doctorName}
                 </h2>
               </div>
             </div>
-            <p className="text-xl text-[#A68763]/80 max-w-2xl">
+            <p className="text-xl text-primary/80 max-w-2xl">
               Manage your patients' medications efficiently and ensure the best possible care through our intuitive dashboard.
             </p>
           </div>
@@ -161,8 +161,8 @@ const Dashboard = () => {
             <AskAI />
           ) : (
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">Settings</h2>
-              <p className="text-[#A68763]">Settings panel coming soon...</p>
+              <h2 className="text-2xl font-bold text-background-dark mb-4">Settings</h2>
+              <p className="text-primary">Settings panel coming soon...</p>
             </div>
           )}
         </motion.div>

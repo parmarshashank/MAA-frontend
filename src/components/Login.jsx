@@ -1,33 +1,28 @@
-import React, { useState } from 'react';
-import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import useAuthStore from '../store/auth.store';
 
-const Login = ({ onLogin }) => {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+const Login = () => {
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const handleSubmit = async (e) => {
-
-    
-    e.preventDefault();
-    setLoading(true);
-    
-    setTimeout(() => {
-      setLoading(false);
-      onLogin();
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      await login(data.email, data.password, 'doctor');
+      toast.success('Login successful!');
       navigate('/dashboard');
-    }, 2000);
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,7 +31,7 @@ const Login = ({ onLogin }) => {
         <h2 className="text-3xl font-bold text-background-dark">Doctor Login</h2>
         <p className="text-primary">Welcome back! Please enter your details</p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -44,12 +39,19 @@ const Login = ({ onLogin }) => {
               </div>
               <input
                 type="email"
-                name="email"
-                required
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Invalid email address',
+                  },
+                })}
                 className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Email address"
-                onChange={handleChange}
               />
+              {errors.email && (
+                <p className="mt-1 text-red-500 text-sm">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="relative group animate-slideUp">
@@ -58,12 +60,19 @@ const Login = ({ onLogin }) => {
               </div>
               <input
                 type="password"
-                name="password"
-                required
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: {
+                    value: 6,
+                    message: 'Password must be at least 6 characters',
+                  },
+                })}
                 className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Password"
-                onChange={handleChange}
               />
+              {errors.password && (
+                <p className="mt-1 text-red-500 text-sm">{errors.password.message}</p>
+              )}
             </div>
           </div>
 
@@ -77,20 +86,15 @@ const Login = ({ onLogin }) => {
             </a>
           </div>
 
-          <button
+          <motion.button
             type="submit"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span className="ml-2">Logging in...</span>
-              </div>
-            ) : (
-              'Login'
-            )}
-          </button>
+            {loading ? 'Logging in...' : 'Sign in'}
+          </motion.button>
         </form>
       </div>
     </div>

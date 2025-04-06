@@ -1,18 +1,40 @@
 import apiClient from '../config/api.config';
 
 class AuthService {
-  async login(email, password, role) {
+  async register(role, userData) {
     try {
-      const response = await apiClient.post('/auth/login', {
+      const response = await apiClient.post(`/auth/register/${role}`, userData);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('role', role.toLowerCase());
+      }
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async login(role, email, password) {
+    try {
+      const response = await apiClient.post(`/auth/login/${role}`, {
         email,
         password,
-        role, // 'admin', 'doctor', or 'pharmacist'
       });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        localStorage.setItem('role', role);
+        localStorage.setItem('role', role.toLowerCase());
       }
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCurrentUser() {
+    try {
+      const response = await apiClient.get('/auth/me');
       return response.data;
     } catch (error) {
       throw error;
@@ -25,12 +47,12 @@ class AuthService {
     localStorage.removeItem('role');
   }
 
-  getCurrentUser() {
+  getStoredUser() {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }
 
-  getCurrentRole() {
+  getStoredRole() {
     return localStorage.getItem('role');
   }
 

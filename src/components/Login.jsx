@@ -1,25 +1,46 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUserMd, FaHospital, FaClinicMedical } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import useAuthStore from '../store/auth.store';
+import { ROLES, ROLE_LABELS, ROLE_REDIRECTS } from '../utils/roles';
 
 const Login = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm({
+    defaultValues: {
+      role: ROLES.DOCTOR
+    }
+  });
+
+  const selectedRole = watch('role');
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case ROLES.ADMIN:
+        return <FaHospital className="w-6 h-6" />;
+      case ROLES.DOCTOR:
+        return <FaUserMd className="w-6 h-6" />;
+      case ROLES.PHARMACIST:
+        return <FaClinicMedical className="w-6 h-6" />;
+      default:
+        return null;
+    }
+  };
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await login(data.email, data.password, 'doctor');
+      await login(data.role, data.email, data.password);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate(ROLE_REDIRECTS[data.role]);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -28,11 +49,35 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light to-primary animate-fadeIn">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-background-dark">Doctor Login</h2>
-        <p className="text-primary">Welcome back! Please enter your details</p>
+        <h2 className="text-3xl font-bold text-background-dark">Welcome Back</h2>
+        <p className="text-primary mb-6">Please enter your details to continue</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
+            {/* Role Selection */}
+            <div className="grid grid-cols-3 gap-4">
+              {Object.values(ROLES).map((role) => (
+                <label
+                  key={role}
+                  className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
+                    ${selectedRole === role 
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-secondary hover:border-primary/50'}`}
+                >
+                  <input
+                    type="radio"
+                    value={role}
+                    {...register('role')}
+                    className="sr-only"
+                  />
+                  {getRoleIcon(role)}
+                  <span className="mt-2 text-sm font-medium text-background-dark">
+                    {ROLE_LABELS[role]}
+                  </span>
+                </label>
+              ))}
+            </div>
+
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaEnvelope className="h-5 w-5 text-primary" />

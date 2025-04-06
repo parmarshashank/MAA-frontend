@@ -1,16 +1,36 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { adminService, doctorService, pharmacistService } from '../services/api.service';
 import { ROLES } from '../utils/roles';
-import authService from '../services/auth.service';
+
+// Mock user data for different roles
+const mockUsers = {
+  [ROLES.ADMIN]: {
+    id: '1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: ROLES.ADMIN
+  },
+  [ROLES.DOCTOR]: {
+    id: '2',
+    name: 'Doctor User',
+    email: 'doctor@example.com',
+    role: ROLES.DOCTOR
+  },
+  [ROLES.PHARMACIST]: {
+    id: '3',
+    name: 'Pharmacist User',
+    email: 'pharmacist@example.com',
+    role: ROLES.PHARMACIST
+  }
+};
 
 const useAuthStore = create(
   persist(
     (set) => ({
       token: null,
-      user: authService.getStoredUser(),
-      role: authService.getStoredRole(),
-      isAuthenticated: authService.isAuthenticated(),
+      user: null,
+      role: null,
+      isAuthenticated: false,
       isLoading: false,
       error: null,
 
@@ -33,98 +53,58 @@ const useAuthStore = create(
       setError: (error) => set({ error }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      login: async (role, email, password) => {
+      login: async (role, email) => {
         try {
-          set({ isLoading: true, error: null });
-          const data = await authService.login(role, email, password);
+          // Simulate API delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Get mock user for the selected role
+          const mockUser = mockUsers[role];
+          
+          // For testing purposes, accept any email for the selected role
           set({
-            token: data.token,
-            user: data.user,
-            role: role.toLowerCase(),
+            token: 'mock-token',
+            user: { ...mockUser, email }, // Use provided email
+            role: role,
             isAuthenticated: true,
-            isLoading: false,
             error: null
           });
-
-          // Set token in axios headers
-          localStorage.setItem('token', data.token);
           
-          return data;
+          return { token: 'mock-token', user: mockUser };
         } catch (error) {
-          set({
-            isLoading: false,
-            error: error.message || 'Login failed'
-          });
+          set({ error: 'Login failed' });
           throw error;
         }
       },
 
       register: async (userData) => {
         try {
-          set({ isLoading: true, error: null });
-          const data = await authService.register(userData);
+          // Simulate API delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const newUser = {
+            id: Math.random().toString(),
+            ...userData,
+            role: ROLES.ADMIN
+          };
+          
           set({
-            token: data.token,
-            user: data.admin,
-            role: 'admin',
+            token: 'mock-token',
+            user: newUser,
+            role: ROLES.ADMIN,
             isAuthenticated: true,
-            isLoading: false,
             error: null
           });
-
-          // Set token in axios headers
-          localStorage.setItem('token', data.token);
           
-          return data;
+          return { token: 'mock-token', admin: newUser };
         } catch (error) {
-          set({
-            isLoading: false,
-            error: error.message || 'Registration failed'
-          });
-          throw error;
-        }
-      },
-
-      createDoctor: async (doctorData) => {
-        try {
-          set({ isLoading: true, error: null });
-          const data = await adminService.createDoctor({
-            name: doctorData.name,
-            email: doctorData.email,
-            password: doctorData.password
-          });
-          set({ isLoading: false });
-          return data;
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to create doctor'
-          });
-          throw error;
-        }
-      },
-
-      createPharmacist: async (pharmacistData) => {
-        try {
-          set({ isLoading: true, error: null });
-          const data = await adminService.createPharmacist({
-            name: pharmacistData.name,
-            email: pharmacistData.email,
-            password: pharmacistData.password
-          });
-          set({ isLoading: false });
-          return data;
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to create pharmacist'
-          });
+          set({ error: 'Registration failed' });
           throw error;
         }
       },
 
       logout: () => {
-        authService.logout();
+        localStorage.removeItem('auth-storage');
         set({
           token: null,
           user: null,
@@ -135,38 +115,8 @@ const useAuthStore = create(
       },
 
       getProfile: async () => {
-        try {
-          set({ isLoading: true, error: null });
-          const { role } = useAuthStore.getState();
-          let response;
-
-          switch (role) {
-            case ROLES.ADMIN:
-              response = await adminService.getProfile();
-              break;
-            case ROLES.DOCTOR:
-              response = await doctorService.getProfile();
-              break;
-            case ROLES.PHARMACIST:
-              response = await pharmacistService.getProfile();
-              break;
-            default:
-              throw new Error('Invalid role');
-          }
-
-          set({
-            user: response.user,
-            isLoading: false
-          });
-
-          return response.user;
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to fetch profile'
-          });
-          throw error;
-        }
+        const { role } = useAuthStore.getState();
+        return mockUsers[role];
       }
     }),
     {

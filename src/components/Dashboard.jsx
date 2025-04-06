@@ -1,36 +1,221 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSignOutAlt, 
-  FaPills, 
-  FaPlus, 
+  FaUserInjured,
+  FaPrescription,
   FaUserMd, 
   FaCog,
   FaBars,
   FaTimes,
-  FaRobot
+  FaRobot,
+  FaPlus,
+  FaTimes as FaClose
 } from 'react-icons/fa';
-import AssignMedicines from './AssignMedicines';
-import AddNewMedicine from './AddNewMedicine';
+import useAuthStore from '../store/auth.store';
 import AskAI from './AskAI';
 
 const Dashboard = () => {
-  const [doctorName, setDoctorName] = useState('');
-  const [activeComponent, setActiveComponent] = useState('assign');
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
+  const [activeComponent, setActiveComponent] = useState('patients');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  useEffect(() => {
-    setDoctorName('Shashank Parmar');
-  }, []);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [showPrescribeModal, setShowPrescribeModal] = useState(false);
 
   const handleLogout = () => {
-    console.log('Logging out...');
+    logout();
+    navigate('/login');
   };
 
   const sidebarVariants = {
     open: { x: 0, width: "256px" },
     closed: { x: -256, width: "0px" }
   };
+
+  // Mock patients data
+  const patients = [
+    {
+      id: 1,
+      name: "John Doe",
+      age: 45,
+      lastVisit: "2024-03-15",
+      nextAppointment: "2024-04-15",
+      condition: "Hypertension",
+      status: "Stable"
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      age: 32,
+      lastVisit: "2024-03-20",
+      nextAppointment: "2024-04-10",
+      condition: "Diabetes Type 2",
+      status: "Under Observation"
+    }
+  ];
+
+  // Mock medicines data
+  const medicines = [
+    {
+      id: 1,
+      name: "Paracetamol",
+      dosage: "500mg",
+      manufacturer: "ABC Pharma",
+      inStock: true
+    },
+    {
+      id: 2,
+      name: "Amoxicillin",
+      dosage: "250mg",
+      manufacturer: "XYZ Healthcare",
+      inStock: true
+    },
+    {
+      id: 3,
+      name: "Metformin",
+      dosage: "1000mg",
+      manufacturer: "Healthcare Corp",
+      inStock: true
+    }
+  ];
+
+  const PrescribeModal = ({ patient, onClose }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-background-dark">
+            Prescribe Medicine for {patient.name}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaClose />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="p-4 bg-primary/5 rounded-lg">
+            <h3 className="font-semibold text-background-dark mb-2">Patient Details</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <p><span className="text-gray-600">Age:</span> {patient.age} years</p>
+              <p><span className="text-gray-600">Condition:</span> {patient.condition}</p>
+              <p><span className="text-gray-600">Status:</span> {patient.status}</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {medicines.map((medicine) => (
+              <div
+                key={medicine.id}
+                className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
+              >
+                <h4 className="font-semibold text-background-dark">{medicine.name}</h4>
+                <p className="text-sm text-gray-600">Dosage: {medicine.dosage}</p>
+                <p className="text-sm text-gray-600">Manufacturer: {medicine.manufacturer}</p>
+                <div className="mt-2">
+                  <button className="w-full px-3 py-1.5 bg-primary text-white rounded-lg text-sm hover:bg-primary/80 transition-colors">
+                    Select Medicine
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors"
+            >
+              Save Prescription
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const PatientManagement = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-background-dark">My Patients</h2>
+        <button
+          className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors"
+        >
+          <FaUserInjured />
+          <span>Add New Patient</span>
+        </button>
+      </div>
+
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {patients.map((patient) => (
+          <div
+            key={patient.id}
+            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-semibold text-background-dark">{patient.name}</h3>
+              <span className={`px-2 py-1 rounded-full text-sm ${
+                patient.status === 'Stable' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {patient.status}
+              </span>
+            </div>
+            <div className="space-y-2 text-gray-600">
+              <p className="flex justify-between">
+                <span>Age:</span>
+                <span className="font-medium">{patient.age} years</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Last Visit:</span>
+                <span className="font-medium">{patient.lastVisit}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Next Appointment:</span>
+                <span className="font-medium">{patient.nextAppointment}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Condition:</span>
+                <span className="font-medium">{patient.condition}</span>
+              </p>
+            </div>
+            <div className="mt-4 flex space-x-2">
+              <button className="flex-1 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
+                View Details
+              </button>
+              <button 
+                onClick={() => {
+                  setSelectedPatient(patient);
+                  setShowPrescribeModal(true);
+                }}
+                className="flex-1 px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors"
+              >
+                Prescribe
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showPrescribeModal && selectedPatient && (
+        <PrescribeModal 
+          patient={selectedPatient} 
+          onClose={() => {
+            setShowPrescribeModal(false);
+            setSelectedPatient(null);
+          }}
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background-light flex">
@@ -56,25 +241,25 @@ const Dashboard = () => {
               
               <nav className="space-y-4">
                 <button
-                  onClick={() => setActiveComponent('assign')}
+                  onClick={() => setActiveComponent('patients')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
-                    ${activeComponent === 'assign' 
+                    ${activeComponent === 'patients' 
                       ? 'bg-primary text-white' 
                       : 'text-secondary hover:bg-primary/20'}`}
                 >
-                  <FaPills />
-                  <span>Assign Medicines</span>
+                  <FaUserInjured />
+                  <span>My Patients</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveComponent('add')}
+                  onClick={() => setActiveComponent('prescriptions')}
                   className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors
-                    ${activeComponent === 'add' 
+                    ${activeComponent === 'prescriptions' 
                       ? 'bg-primary text-white' 
                       : 'text-secondary hover:bg-primary/20'}`}
                 >
-                  <FaPlus />
-                  <span>Add New Medicine</span>
+                  <FaPrescription />
+                  <span>Prescriptions</span>
                 </button>
 
                 <button
@@ -137,12 +322,12 @@ const Dashboard = () => {
                   Welcome back,
                 </h1>
                 <h2 className="text-4xl font-bold text-primary leading-tight">
-                  Dr. {doctorName}
+                  Dr. {user?.name || 'Doctor'}
                 </h2>
               </div>
             </div>
             <p className="text-xl text-primary/80 max-w-2xl">
-              Manage your patients' medications efficiently and ensure the best possible care through our intuitive dashboard.
+              Manage your patients and provide the best possible care through our intuitive dashboard.
             </p>
           </div>
         </motion.div>
@@ -153,10 +338,13 @@ const Dashboard = () => {
           transition={{ delay: 0.2 }}
           className="bg-white/50 backdrop-blur-sm rounded-xl p-6 shadow-lg"
         >
-          {activeComponent === 'assign' ? (
-            <AssignMedicines />
-          ) : activeComponent === 'add' ? (
-            <AddNewMedicine />
+          {activeComponent === 'patients' ? (
+            <PatientManagement />
+          ) : activeComponent === 'prescriptions' ? (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-background-dark mb-4">Prescriptions</h2>
+              <p className="text-primary">Prescription management panel coming soon...</p>
+            </div>
           ) : activeComponent === 'ask-ai' ? (
             <AskAI />
           ) : (

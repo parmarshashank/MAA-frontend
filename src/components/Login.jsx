@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import useAuthStore from '../store/auth.store';
-import { ROLES, ROLE_LABELS, ROLE_REDIRECTS } from '../utils/roles';
+import { ROLES, ROLE_LABELS } from '../utils/roles';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,16 +36,19 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await login({
-        email: data.email,
-        password: data.password
-      }, data.role);
-      
+      await login(data.role, data.email);
       toast.success('Login successful!');
-      navigate(ROLE_REDIRECTS[data.role]);
+      
+      // Navigate based on role
+      const dashboardRoutes = {
+        [ROLES.ADMIN]: '/admin/dashboard',
+        [ROLES.DOCTOR]: '/doctor/dashboard',
+        [ROLES.PHARMACIST]: '/pharmacist/dashboard'
+      };
+      
+      navigate(dashboardRoutes[data.role]);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      toast.error(errorMessage);
+      toast.error('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -112,15 +115,10 @@ const Login = () => {
               </div>
               <input
                 type="password"
-                {...register('password', {
-                  required: 'Password is required',
-                })}
+                {...register('password')}
                 className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Password"
               />
-              {errors.password && (
-                <p className="mt-1 text-red-500 text-sm">{errors.password.message}</p>
-              )}
             </div>
           </div>
 

@@ -1,123 +1,173 @@
-import apiClient from '../config/api.config';
+import axios from '../utils/axios.config';
 
 // Admin Services
 export const adminService = {
   register: async (adminData) => {
-    const response = await apiClient.post('/api/admin/register', adminData);
-    return response.data;
+    try {
+      const response = await axios.post('/admin/register', adminData);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        throw new Error('Server error occurred during registration');
+      }
+      throw error;
+    }
   },
 
   login: async (credentials) => {
-    const response = await apiClient.post('/api/admin/login', credentials);
-    return response.data;
+    try {
+      const response = await axios.post('/admin/login', credentials);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        throw new Error('Server error occurred during login');
+      }
+      throw error;
+    }
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/api/admin/me');
-    return response.data;
+    try {
+      const response = await axios.get('/admin/me');
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error('Admin profile not found');
+      } else if (error.response?.status === 500) {
+        throw new Error('Server error occurred while fetching profile');
+      }
+      throw error;
+    }
   },
 
   createDoctor: async (doctorData) => {
-    const response = await apiClient.post('/api/admin/doctors', doctorData);
-    return response.data;
+    try {
+      const response = await axios.post('/admin/doctors', {
+        name: doctorData.name,
+        email: doctorData.email,
+        password: doctorData.password
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        throw new Error('Server error occurred while creating doctor account');
+      }
+      throw error;
+    }
   },
 
   createPharmacist: async (pharmacistData) => {
-    const response = await apiClient.post('/api/admin/pharmacists', pharmacistData);
-    return response.data;
+    try {
+      const response = await axios.post('/admin/pharmacists', {
+        name: pharmacistData.name,
+        email: pharmacistData.email,
+        password: pharmacistData.password
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        throw new Error('Server error occurred while creating pharmacist account');
+      }
+      throw error;
+    }
   }
 };
 
 // Hospital Services
 export const hospitalService = {
   getAll: async () => {
-    const response = await apiClient.get('/api/hospitals');
-    return response.data;
+    try {
+      const response = await axios.get('/hospitals');
+      return response.data;
+    } catch (error) {
+      console.error('Hospital Service Error:', error);
+      throw error;
+    }
   },
 
   create: async (hospitalData) => {
-    const response = await apiClient.post('/api/hospitals', hospitalData);
-    return response.data;
+    try {
+      const response = await axios.post('/hospitals', hospitalData);
+      return response.data;
+    } catch (error) {
+      console.error('Hospital Service Error:', error);
+      throw error;
+    }
   },
 
   update: async (id, hospitalData) => {
-    const response = await apiClient.put(`/api/hospitals/${id}`, hospitalData);
-    return response.data;
+    try {
+      const response = await axios.put(`/hospitals/${id}`, hospitalData);
+      return response.data;
+    } catch (error) {
+      console.error('Hospital Service Error:', error);
+      throw error;
+    }
   }
 };
 
 // Doctor Services
 export const doctorService = {
-  register: async (doctorData) => {
-    const response = await apiClient.post('/api/auth/register/doctor', doctorData);
-    return response.data;
-  },
-
   login: async (credentials) => {
-    const response = await apiClient.post('/api/auth/login/doctor', credentials);
+    const response = await axios.post('/auth/login/doctor', credentials);
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/api/auth/me');
+    const response = await axios.get('/auth/me');
     return response.data;
   },
 
   getPatients: async () => {
-    const response = await apiClient.get('/api/patients');
+    const response = await axios.get('/patients');
     return response.data;
   },
 
   createPatient: async (patientData) => {
-    const response = await apiClient.post('/api/patients', patientData);
+    const response = await axios.post('/patients', patientData);
     return response.data;
   },
 
   getPrescriptions: async () => {
-    const response = await apiClient.get('/api/prescriptions');
+    const response = await axios.get('/prescriptions');
     return response.data;
   },
 
   getPatientPrescriptions: async (patientId) => {
-    const response = await apiClient.get(`/api/prescriptions/patient/${patientId}`);
+    const response = await axios.get(`/prescriptions/patient/${patientId}`);
     return response.data;
   },
 
   createPrescription: async (prescriptionData) => {
-    const response = await apiClient.post('/api/prescriptions', prescriptionData);
+    const response = await axios.post('/prescriptions', prescriptionData);
     return response.data;
   }
 };
 
 // Pharmacist Services
 export const pharmacistService = {
-  register: async (pharmacistData) => {
-    const response = await apiClient.post('/api/auth/register/pharmacist', pharmacistData);
-    return response.data;
-  },
-
   login: async (credentials) => {
-    const response = await apiClient.post('/api/auth/login/pharmacist', credentials);
+    const response = await axios.post('/auth/login/pharmacist', credentials);
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/api/auth/me');
+    const response = await axios.get('/auth/me');
     return response.data;
   },
 
   getMedicines: async () => {
-    const response = await apiClient.get('/api/medicines');
+    const response = await axios.get('/medicines');
     return response.data;
   },
 
   createMedicine: async (medicineData) => {
-    const response = await apiClient.post('/api/medicines', medicineData);
+    const response = await axios.post('/medicines', medicineData);
     return response.data;
   },
 
   updateMedicine: async (id, medicineData) => {
-    const response = await apiClient.put(`/api/medicines/${id}`, medicineData);
+    const response = await axios.put(`/medicines/${id}`, medicineData);
     return response.data;
   }
 };

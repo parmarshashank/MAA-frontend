@@ -2,14 +2,15 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { adminService, doctorService, pharmacistService } from '../services/api.service';
 import { ROLES } from '../utils/roles';
+import authService from '../services/auth.service';
 
 const useAuthStore = create(
   persist(
     (set) => ({
       token: null,
-      user: null,
-      role: null,
-      isAuthenticated: false,
+      user: authService.getStoredUser(),
+      role: authService.getStoredRole(),
+      isAuthenticated: authService.isAuthenticated(),
       isLoading: false,
       error: null,
 
@@ -32,39 +33,23 @@ const useAuthStore = create(
       setError: (error) => set({ error }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      login: async (credentials, role) => {
+      login: async (role, email, password) => {
         try {
           set({ isLoading: true, error: null });
-          let response;
-
-          switch (role) {
-            case ROLES.ADMIN:
-              response = await adminService.login(credentials);
-              break;
-            case ROLES.DOCTOR:
-              response = await doctorService.login(credentials);
-              break;
-            case ROLES.PHARMACIST:
-              response = await pharmacistService.login(credentials);
-              break;
-            default:
-              throw new Error('Invalid role');
-          }
-
-          const { token, user } = response;
+          const data = await authService.login(role, email, password);
           set({
-            token,
-            user,
-            role,
+            token: data.token,
+            user: data.user,
+            role: role.toLowerCase(),
             isAuthenticated: true,
             isLoading: false,
             error: null
           });
 
           // Set token in axios headers
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', data.token);
           
-          return { token, user, role };
+          return data;
         } catch (error) {
           set({
             isLoading: false,
@@ -74,39 +59,23 @@ const useAuthStore = create(
         }
       },
 
-      register: async (role, userData) => {
+      register: async (userData) => {
         try {
           set({ isLoading: true, error: null });
-          let response;
-
-          switch (role) {
-            case ROLES.ADMIN:
-              response = await adminService.register(userData);
-              break;
-            case ROLES.DOCTOR:
-              response = await doctorService.register(userData);
-              break;
-            case ROLES.PHARMACIST:
-              response = await pharmacistService.register(userData);
-              break;
-            default:
-              throw new Error('Invalid role');
-          }
-
-          const { token, user } = response;
+          const data = await authService.register(userData);
           set({
-            token,
-            user,
-            role,
+            token: data.token,
+            user: data.admin,
+            role: 'admin',
             isAuthenticated: true,
             isLoading: false,
             error: null
           });
 
           // Set token in axios headers
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', data.token);
           
-          return { token, user, role };
+          return data;
         } catch (error) {
           set({
             isLoading: false,
@@ -116,8 +85,46 @@ const useAuthStore = create(
         }
       },
 
+      createDoctor: async (doctorData) => {
+        try {
+          set({ isLoading: true, error: null });
+          const data = await adminService.createDoctor({
+            name: doctorData.name,
+            email: doctorData.email,
+            password: doctorData.password
+          });
+          set({ isLoading: false });
+          return data;
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: error.message || 'Failed to create doctor'
+          });
+          throw error;
+        }
+      },
+
+      createPharmacist: async (pharmacistData) => {
+        try {
+          set({ isLoading: true, error: null });
+          const data = await adminService.createPharmacist({
+            name: pharmacistData.name,
+            email: pharmacistData.email,
+            password: pharmacistData.password
+          });
+          set({ isLoading: false });
+          return data;
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: error.message || 'Failed to create pharmacist'
+          });
+          throw error;
+        }
+      },
+
       logout: () => {
-        localStorage.removeItem('token');
+        authService.logout();
         set({
           token: null,
           user: null,

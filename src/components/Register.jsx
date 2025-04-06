@@ -1,99 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaUserMd, FaHospital, FaClinicMedical, FaUser, FaBuilding } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import useAuthStore from '../store/auth.store';
-import { ROLES, ROLE_LABELS, ROLE_REDIRECTS } from '../utils/roles';
-import { hospitalService } from '../services/api.service';
 
 const Register = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
   const [loading, setLoading] = useState(false);
-  const [hospitals, setHospitals] = useState([]);
-  const [loadingHospitals, setLoadingHospitals] = useState(false);
-  const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
 
-  const { register: registerField, handleSubmit, formState: { errors }, watch } = useForm({
-    defaultValues: {
-      role: ROLES.DOCTOR
-    }
-  });
-
-  const selectedRole = watch('role');
-
-  // Check if this is first time setup (no admin exists)
-  useEffect(() => {
-    const checkFirstTimeSetup = async () => {
-      try {
-        await hospitalService.getAll();
-        setIsFirstTimeSetup(false);
-      } catch (error) {
-        if (error.response?.status === 404) {
-          setIsFirstTimeSetup(true);
-        }
-      }
-    };
-
-    checkFirstTimeSetup();
-  }, []);
-
-  // Fetch hospitals when component mounts
-  useEffect(() => {
-    const fetchHospitals = async () => {
-      try {
-        setLoadingHospitals(true);
-        const response = await hospitalService.getAll();
-        setHospitals(response);
-      } catch (error) {
-        toast.error('Failed to load hospitals. Please try again later.');
-        console.error('Error fetching hospitals:', error);
-      } finally {
-        setLoadingHospitals(false);
-      }
-    };
-
-    if (!isFirstTimeSetup) {
-      fetchHospitals();
-    }
-  }, [isFirstTimeSetup]);
-
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case ROLES.ADMIN:
-        return <FaHospital className="w-6 h-6" />;
-      case ROLES.DOCTOR:
-        return <FaUserMd className="w-6 h-6" />;
-      case ROLES.PHARMACIST:
-        return <FaClinicMedical className="w-6 h-6" />;
-      default:
-        return null;
-    }
-  };
+  const { register: registerField, handleSubmit, formState: { errors } } = useForm();
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      const registrationData = {
+      await register({
         name: data.name,
         email: data.email,
-        password: data.password,
-      };
-
-      // Add hospitalId for doctor and pharmacist
-      if (data.role !== ROLES.ADMIN) {
-        if (!data.hospitalId) {
-          toast.error('Please select a hospital');
-          return;
-        }
-        registrationData.hospitalId = data.hospitalId;
-      }
-
-      await register(data.role, registrationData);
-      toast.success('Registration successful!');
-      navigate(ROLE_REDIRECTS[data.role]);
+        password: data.password
+      });
+      
+      toast.success('Admin registration successful!');
+      navigate('/admin/dashboard');
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(errorMessage);
@@ -105,53 +35,27 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light to-primary animate-fadeIn">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-background-dark">Create Account</h2>
-        <p className="text-primary mb-6">Please fill in your details to register</p>
+        <h2 className="text-3xl font-bold text-background-dark">Create Admin Account</h2>
+        <p className="text-primary mb-6">Please fill in your details to register as an administrator</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
-            {/* Role Selection */}
-            <div className="grid grid-cols-3 gap-4">
-              {Object.values(ROLES)
-                .filter(role => isFirstTimeSetup ? role === ROLES.ADMIN : role !== ROLES.ADMIN)
-                .map((role) => (
-                  <label
-                    key={role}
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
-                      ${selectedRole === role 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-secondary hover:border-primary/50'}`}
-                  >
-                    <input
-                      type="radio"
-                      value={role}
-                      {...registerField('role')}
-                      className="sr-only"
-                    />
-                    {getRoleIcon(role)}
-                    <span className="mt-2 text-sm font-medium text-background-dark">
-                      {ROLE_LABELS[role]}
-                    </span>
-                  </label>
-                ))}
-            </div>
-
             {/* Name Field */}
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaUser className="h-5 w-5 text-primary" />
               </div>
               <input
-                type="text"
                 {...registerField('name', {
                   required: 'Name is required',
                   minLength: {
                     value: 2,
-                    message: 'Name must be at least 2 characters',
-                  },
+                    message: 'Name must be at least 2 characters'
+                  }
                 })}
-                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                type="text"
                 placeholder="Full Name"
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               {errors.name && (
                 <p className="mt-1 text-red-500 text-sm">{errors.name.message}</p>
@@ -164,16 +68,16 @@ const Register = () => {
                 <FaEnvelope className="h-5 w-5 text-primary" />
               </div>
               <input
-                type="email"
                 {...registerField('email', {
                   required: 'Email is required',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
+                    message: 'Invalid email address'
+                  }
                 })}
+                type="email"
+                placeholder="Email Address"
                 className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Email address"
               />
               {errors.email && (
                 <p className="mt-1 text-red-500 text-sm">{errors.email.message}</p>
@@ -186,49 +90,21 @@ const Register = () => {
                 <FaLock className="h-5 w-5 text-primary" />
               </div>
               <input
-                type="password"
                 {...registerField('password', {
                   required: 'Password is required',
                   minLength: {
                     value: 6,
-                    message: 'Password must be at least 6 characters',
-                  },
+                    message: 'Password must be at least 6 characters'
+                  }
                 })}
-                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                type="password"
                 placeholder="Password"
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               {errors.password && (
                 <p className="mt-1 text-red-500 text-sm">{errors.password.message}</p>
               )}
             </div>
-
-            {/* Hospital Selection - Only show for Doctor and Pharmacist */}
-            {selectedRole !== ROLES.ADMIN && !isFirstTimeSetup && (
-              <div className="relative group animate-slideUp">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <FaBuilding className="h-5 w-5 text-primary" />
-                </div>
-                <select
-                  {...registerField('hospitalId', {
-                    required: 'Hospital selection is required',
-                  })}
-                  className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none bg-white"
-                  disabled={loadingHospitals}
-                >
-                  <option value="">
-                    {loadingHospitals ? 'Loading hospitals...' : 'Select Hospital'}
-                  </option>
-                  {hospitals.map((hospital) => (
-                    <option key={hospital.id} value={hospital.id}>
-                      {hospital.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.hospitalId && (
-                  <p className="mt-1 text-red-500 text-sm">{errors.hospitalId.message}</p>
-                )}
-              </div>
-            )}
           </div>
 
           <motion.button
@@ -236,15 +112,15 @@ const Register = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-            disabled={loading || loadingHospitals}
+            disabled={loading}
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? 'Creating Account...' : 'Create Admin Account'}
           </motion.button>
 
           <p className="text-center text-background-dark/70">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              Sign in
+            <Link to="/login" className="text-primary hover:text-primary-hover">
+              Login here
             </Link>
           </p>
         </form>

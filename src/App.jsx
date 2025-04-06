@@ -13,6 +13,8 @@ import Unauthorized from './components/Unauthorized';
 import { ROLES } from './utils/roles';
 import useAuthStore from './store/auth.store';
 import Register from './components/Register';
+import AdminDashboard from './components/AdminDashboard';
+import PublicRoute from './components/PublicRoute';
 
 function App() {
   const { isAuthenticated, role } = useAuthStore();
@@ -36,20 +38,30 @@ function App() {
           <Route 
             path="/login" 
             element={
-              isAuthenticated ? 
-              <Navigate to={`/${role}/dashboard`} replace /> : 
-              <Login />
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
             } 
           />
           <Route 
             path="/register" 
             element={
-              isAuthenticated ? 
-              <Navigate to={`/${role}/dashboard`} replace /> : 
-              <Register />
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
             } 
           />
           <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route path="/admin/*" element={

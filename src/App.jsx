@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './components/Unauthorized';
 import { ROLES } from './utils/roles';
 import useAuthStore from './store/auth.store';
+import Register from './components/Register';
 
 function App() {
   const { isAuthenticated, role } = useAuthStore();
@@ -38,6 +39,14 @@ function App() {
               isAuthenticated ? 
               <Navigate to={`/${role}/dashboard`} replace /> : 
               <Login />
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              isAuthenticated ? 
+              <Navigate to={`/${role}/dashboard`} replace /> : 
+              <Register />
             } 
           />
           <Route path="/unauthorized" element={<Unauthorized />} />

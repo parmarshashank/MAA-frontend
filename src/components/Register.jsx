@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaUserMd, FaHospital, FaClinicMedical } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUserMd, FaHospital, FaClinicMedical, FaUser, FaBuilding } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import useAuthStore from '../store/auth.store';
 import { ROLES, ROLE_LABELS, ROLE_REDIRECTS } from '../utils/roles';
 
-const Login = () => {
+const Register = () => {
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const register = useAuthStore((state) => state.register);
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors }, watch } = useForm({
+  const [hospitals, setHospitals] = useState([
+    // This should be fetched from the backend
+    { id: '1', name: 'Hospital A' },
+    { id: '2', name: 'Hospital B' },
+  ]);
+
+  const { register: registerField, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
       role: ROLES.DOCTOR
     }
@@ -35,11 +41,16 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await login(data.role, data.email, data.password);
-      toast.success('Login successful!');
+      await register(data.role, {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        hospitalId: data.hospitalId,
+      });
+      toast.success('Registration successful!');
       navigate(ROLE_REDIRECTS[data.role]);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -49,8 +60,8 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light to-primary animate-fadeIn">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-background-dark">Welcome Back</h2>
-        <p className="text-primary mb-6">Please enter your details to continue</p>
+        <h2 className="text-3xl font-bold text-background-dark">Create Account</h2>
+        <p className="text-primary mb-6">Please fill in your details to register</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
@@ -67,7 +78,7 @@ const Login = () => {
                   <input
                     type="radio"
                     value={role}
-                    {...register('role')}
+                    {...registerField('role')}
                     className="sr-only"
                   />
                   {getRoleIcon(role)}
@@ -78,13 +89,36 @@ const Login = () => {
               ))}
             </div>
 
+            {/* Name Field */}
+            <div className="relative group animate-slideUp">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <FaUser className="h-5 w-5 text-primary" />
+              </div>
+              <input
+                type="text"
+                {...registerField('name', {
+                  required: 'Name is required',
+                  minLength: {
+                    value: 2,
+                    message: 'Name must be at least 2 characters',
+                  },
+                })}
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                placeholder="Full Name"
+              />
+              {errors.name && (
+                <p className="mt-1 text-red-500 text-sm">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Email Field */}
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaEnvelope className="h-5 w-5 text-primary" />
               </div>
               <input
                 type="email"
-                {...register('email', {
+                {...registerField('email', {
                   required: 'Email is required',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -99,13 +133,14 @@ const Login = () => {
               )}
             </div>
 
+            {/* Password Field */}
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaLock className="h-5 w-5 text-primary" />
               </div>
               <input
                 type="password"
-                {...register('password', {
+                {...registerField('password', {
                   required: 'Password is required',
                   minLength: {
                     value: 6,
@@ -119,16 +154,29 @@ const Login = () => {
                 <p className="mt-1 text-red-500 text-sm">{errors.password.message}</p>
               )}
             </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input type="checkbox" className="w-4 h-4 border-secondary rounded focus:ring-primary" />
-              <span className="ml-2 text-sm text-background-dark">Remember me</span>
-            </label>
-            <a href="#" className="text-sm text-primary hover:underline">
-              Forgot password?
-            </a>
+            {/* Hospital Selection */}
+            <div className="relative group animate-slideUp">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <FaBuilding className="h-5 w-5 text-primary" />
+              </div>
+              <select
+                {...registerField('hospitalId', {
+                  required: 'Hospital selection is required',
+                })}
+                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none bg-white"
+              >
+                <option value="">Select Hospital</option>
+                {hospitals.map((hospital) => (
+                  <option key={hospital.id} value={hospital.id}>
+                    {hospital.name}
+                  </option>
+                ))}
+              </select>
+              {errors.hospitalId && (
+                <p className="mt-1 text-red-500 text-sm">{errors.hospitalId.message}</p>
+              )}
+            </div>
           </div>
 
           <motion.button
@@ -138,13 +186,13 @@ const Login = () => {
             className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Sign in'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </motion.button>
 
           <p className="text-center text-background-dark/70">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Create one
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </form>
@@ -153,4 +201,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register; 

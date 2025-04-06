@@ -1,19 +1,14 @@
 import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-if (!API_BASE_URL) {
-  console.error('Backend API URL is not configured. Please set VITE_API_URL in your environment variables.');
-}
+import { toast } from 'react-toastify';
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add a request interceptor for authentication
+// Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -27,14 +22,25 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add a response interceptor for error handling
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config;
+
+    // Handle token expiration
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
       localStorage.removeItem('token');
       window.location.href = '/login';
+      toast.error('Session expired. Please login again.');
     }
+
+    // Handle forbidden access
+    if (error.response?.status === 403) {
+      window.location.href = '/unauthorized';
+    }
+
     return Promise.reject(error);
   }
 );

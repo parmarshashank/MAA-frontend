@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaUserMd, FaHospital, FaClinicMedical, FaUser, FaBuilding } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -6,16 +6,15 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import useAuthStore from '../store/auth.store';
 import { ROLES, ROLE_LABELS, ROLE_REDIRECTS } from '../utils/roles';
+import { hospitalService } from '../services/api.service';
 
 const Register = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
   const [loading, setLoading] = useState(false);
-  const [hospitals, setHospitals] = useState([
-    // This should be fetched from the backend
-    { id: '1', name: 'Hospital A' },
-    { id: '2', name: 'Hospital B' },
-  ]);
+  const [hospitals, setHospitals] = useState([]);
+  const [loadingHospitals, setLoadingHospitals] = useState(false);
+  const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
 
   const { register: registerField, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
@@ -24,6 +23,42 @@ const Register = () => {
   });
 
   const selectedRole = watch('role');
+
+  // Check if this is first time setup (no admin exists)
+  useEffect(() => {
+    const checkFirstTimeSetup = async () => {
+      try {
+        await hospitalService.getAll();
+        setIsFirstTimeSetup(false);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setIsFirstTimeSetup(true);
+        }
+      }
+    };
+
+    checkFirstTimeSetup();
+  }, []);
+
+  // Fetch hospitals when component mounts
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        setLoadingHospitals(true);
+        const response = await hospitalService.getAll();
+        setHospitals(response);
+      } catch (error) {
+        toast.error('Failed to load hospitals. Please try again later.');
+        console.error('Error fetching hospitals:', error);
+      } finally {
+        setLoadingHospitals(false);
+      }
+    };
+
+    if (!isFirstTimeSetup) {
+      fetchHospitals();
+    }
+  }, [isFirstTimeSetup]);
 
   const getRoleIcon = (role) => {
     switch (role) {
@@ -41,12 +76,22 @@ const Register = () => {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await register(data.role, {
+      const registrationData = {
         name: data.name,
         email: data.email,
         password: data.password,
-        hospitalId: data.hospitalId,
-      });
+      };
+
+      // Add hospitalId for doctor and pharmacist
+      if (data.role !== ROLES.ADMIN) {
+        if (!data.hospitalId) {
+          toast.error('Please select a hospital');
+          return;
+        }
+        registrationData.hospitalId = data.hospitalId;
+      }
+
+      await register(data.role, registrationData);
       toast.success('Registration successful!');
       navigate(ROLE_REDIRECTS[data.role]);
     } catch (error) {
@@ -67,26 +112,28 @@ const Register = () => {
           <div className="space-y-4">
             {/* Role Selection */}
             <div className="grid grid-cols-3 gap-4">
-              {Object.values(ROLES).map((role) => (
-                <label
-                  key={role}
-                  className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
-                    ${selectedRole === role 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-secondary hover:border-primary/50'}`}
-                >
-                  <input
-                    type="radio"
-                    value={role}
-                    {...registerField('role')}
-                    className="sr-only"
-                  />
-                  {getRoleIcon(role)}
-                  <span className="mt-2 text-sm font-medium text-background-dark">
-                    {ROLE_LABELS[role]}
-                  </span>
-                </label>
-              ))}
+              {Object.values(ROLES)
+                .filter(role => isFirstTimeSetup ? role === ROLES.ADMIN : role !== ROLES.ADMIN)
+                .map((role) => (
+                  <label
+                    key={role}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
+                      ${selectedRole === role 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-secondary hover:border-primary/50'}`}
+                  >
+                    <input
+                      type="radio"
+                      value={role}
+                      {...registerField('role')}
+                      className="sr-only"
+                    />
+                    {getRoleIcon(role)}
+                    <span className="mt-2 text-sm font-medium text-background-dark">
+                      {ROLE_LABELS[role]}
+                    </span>
+                  </label>
+                ))}
             </div>
 
             {/* Name Field */}
@@ -155,28 +202,33 @@ const Register = () => {
               )}
             </div>
 
-            {/* Hospital Selection */}
-            <div className="relative group animate-slideUp">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <FaBuilding className="h-5 w-5 text-primary" />
-              </div>
-              <select
-                {...registerField('hospitalId', {
-                  required: 'Hospital selection is required',
-                })}
-                className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none bg-white"
-              >
-                <option value="">Select Hospital</option>
-                {hospitals.map((hospital) => (
-                  <option key={hospital.id} value={hospital.id}>
-                    {hospital.name}
+            {/* Hospital Selection - Only show for Doctor and Pharmacist */}
+            {selectedRole !== ROLES.ADMIN && !isFirstTimeSetup && (
+              <div className="relative group animate-slideUp">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FaBuilding className="h-5 w-5 text-primary" />
+                </div>
+                <select
+                  {...registerField('hospitalId', {
+                    required: 'Hospital selection is required',
+                  })}
+                  className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none bg-white"
+                  disabled={loadingHospitals}
+                >
+                  <option value="">
+                    {loadingHospitals ? 'Loading hospitals...' : 'Select Hospital'}
                   </option>
-                ))}
-              </select>
-              {errors.hospitalId && (
-                <p className="mt-1 text-red-500 text-sm">{errors.hospitalId.message}</p>
-              )}
-            </div>
+                  {hospitals.map((hospital) => (
+                    <option key={hospital.id} value={hospital.id}>
+                      {hospital.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.hospitalId && (
+                  <p className="mt-1 text-red-500 text-sm">{errors.hospitalId.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <motion.button
@@ -184,7 +236,7 @@ const Register = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-            disabled={loading}
+            disabled={loading || loadingHospitals}
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </motion.button>

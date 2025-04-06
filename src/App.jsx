@@ -28,10 +28,10 @@ function App() {
             <Navigate to={`/${role}/dashboard`} replace /> : 
             <>
               <Hero />
+              <About />
               <MobileApp />
             </>
           } />
-          <Route path="/about" element={<About />} />
           <Route path="/partner" element={<Partner />} />
           <Route 
             path="/login" 

@@ -1,12 +1,31 @@
 import apiClient from '../config/api.config';
+import { ROLES } from '../utils/roles';
 
 class AuthService {
   async register(role, userData) {
     try {
-      const response = await apiClient.post(`/auth/register/${role}`, userData);
+      let endpoint;
+      switch (role) {
+        case ROLES.ADMIN:
+          endpoint = '/api/admin/register';
+          break;
+        case ROLES.DOCTOR:
+          endpoint = '/api/auth/register/doctor';
+          break;
+        case ROLES.PHARMACIST:
+          endpoint = '/api/auth/register/pharmacist';
+          break;
+        default:
+          throw new Error('Invalid role');
+      }
+
+      const response = await apiClient.post(endpoint, userData);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // Handle different response structures for admin vs doctor/pharmacist
+        const user = response.data.admin || response.data.user;
+        localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('role', role.toLowerCase());
       }
       return response.data;
@@ -17,7 +36,7 @@ class AuthService {
 
   async login(role, email, password) {
     try {
-      const response = await apiClient.post(`/auth/login/${role}`, {
+      const response = await apiClient.post(`/api/auth/login/${role}`, {
         email,
         password,
       });
@@ -34,7 +53,7 @@ class AuthService {
 
   async getCurrentUser() {
     try {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get('/api/auth/me');
       return response.data;
     } catch (error) {
       throw error;

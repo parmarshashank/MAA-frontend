@@ -22,7 +22,6 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-background-light">Quick Links</h4>
             <div className="flex flex-col space-y-2">
-              <a href="#" className="text-secondary/80 hover:text-background-light transition-colors">About Us</a>
               <a href="#" className="text-secondary/80 hover:text-background-light transition-colors">Services</a>
               <a href="#" className="text-secondary/80 hover:text-background-light transition-colors">Contact</a>
             </div>

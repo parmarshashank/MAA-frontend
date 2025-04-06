@@ -11,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const [loading, setLoading] = useState(false);
+
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
       role: ROLES.DOCTOR
@@ -35,7 +36,11 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await login(data.role, data.email, data.password);
+      await login({
+        email: data.email,
+        password: data.password
+      }, data.role);
+      
       toast.success('Login successful!');
       navigate(ROLE_REDIRECTS[data.role]);
     } catch (error) {
@@ -50,7 +55,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light to-primary animate-fadeIn">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
         <h2 className="text-3xl font-bold text-background-dark">Welcome Back</h2>
-        <p className="text-primary mb-6">Please enter your details to continue</p>
+        <p className="text-primary mb-6">Please sign in to continue</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
@@ -78,6 +83,7 @@ const Login = () => {
               ))}
             </div>
 
+            {/* Email Field */}
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaEnvelope className="h-5 w-5 text-primary" />
@@ -99,6 +105,7 @@ const Login = () => {
               )}
             </div>
 
+            {/* Password Field */}
             <div className="relative group animate-slideUp">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <FaLock className="h-5 w-5 text-primary" />
@@ -107,10 +114,6 @@ const Login = () => {
                 type="password"
                 {...register('password', {
                   required: 'Password is required',
-                  minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters',
-                  },
                 })}
                 className="w-full pl-10 pr-4 py-3 border border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="Password"
@@ -121,16 +124,6 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input type="checkbox" className="w-4 h-4 border-secondary rounded focus:ring-primary" />
-              <span className="ml-2 text-sm text-background-dark">Remember me</span>
-            </label>
-            <a href="#" className="text-sm text-primary hover:underline">
-              Forgot password?
-            </a>
-          </div>
-
           <motion.button
             type="submit"
             whileHover={{ scale: 1.02 }}
@@ -138,7 +131,7 @@ const Login = () => {
             className="w-full py-3 px-4 bg-background-dark text-white rounded-lg transform hover:scale-[1.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Sign in'}
+            {loading ? 'Signing in...' : 'Sign in'}
           </motion.button>
 
           <p className="text-center text-background-dark/70">

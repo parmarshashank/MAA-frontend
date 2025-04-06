@@ -80,9 +80,6 @@ const Layout = ({ children, onLogout, isAuthenticated }) => {
               <Link to="/" className="text-background-light hover:text-white transition-colors">
                 Home
               </Link>
-              <Link to="/about" className="text-background-light hover:text-white transition-colors">
-                About
-              </Link>
               {!isAuthenticated && (
                 <Link to="/login" className="text-background-light hover:text-white transition-colors">
                   Login
